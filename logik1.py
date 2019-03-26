@@ -7,6 +7,7 @@ Created on Tue Mar  5 09:57:31 2019
 """
 
 import tkinter as tk
+import random
 
 class Application (tk.Tk):
     name = 'Logik'
@@ -14,7 +15,7 @@ class Application (tk.Tk):
     def __init__(self):
         super().__init__ (className = self.name)
         self.title(self.name)
-        self.barvy = '#c90000 #99dd00 #0000ff #ffff00 #008888 #880088 #dd9900 #ffffff'.split()
+        self.barvy = '#ff0000 #ffa500 #ffff00 #ff00ff #ffffff #00ff00 #00ffff #0000ff'.split()
         self.sirka = 60
         self.vyska = 40
         
@@ -33,6 +34,9 @@ class Application (tk.Tk):
         tk.Label(self, text = 'Barva / Místo', font = 'Arial 13', height = 2, 
                  width = 15).grid(column = 7, row = 2)
         
+        ### Nová hra ###
+        tk.Button (self, text = 'Nová hra', font = 'Arial 12', command = self.NewGame).grid(column = 7, row = 1)
+        
         ### Hádaná barva ###
         self.HadaneBarvy = []
         for radek in range (10):
@@ -40,97 +44,96 @@ class Application (tk.Tk):
             for sloupec in range (5):     
                 c = tk.Canvas(self, background = 'grey', width = self.sirka, 
                               height = self.vyska)
+                c.sloupec = (sloupec)
+                c.radek = (radek)
                 c.grid(column = sloupec, row = radek + 3)
                 RadekBarev.append (c)
             self.HadaneBarvy.append(RadekBarev)
         
         ### Odpověď programu ###
-        OdpovedProgramu = []
+        self.OdpovedProgramu = []
         for radek in range (10):
             lbl = tk.Label(self, text = '- / -', font = 'Arial 13')
             lbl.grid(column = 7, row = radek + 3)
-            OdpovedProgramu.append(lbl)
+            self.OdpovedProgramu.append(lbl)
+        
+        ### Potvrď ###
+        tk.Button (self, text = 'Potvrď', font = 'Arial 12', command = self.Potvrd).grid (row = 13, column = 7)
         
         ### Tlačítka ###
         self.pokusBarvy = []
         
         for cislo in range (5):
-            self.prvni = 0
-            self.druhy = 0
-            self.treti = 0
-            self.ctvrty = 0
-            self.paty = 0
-            barva = (self.barvy[self.prvni])
+            barva = (self.barvy[0])
             def akce (c = cislo, b = barva):
                 self.click(c,b)
             b = tk.Button (self, width = self.sirka, height = self.vyska, 
                            bg = barva, fg = barva, bitmap = 'gray12',
                            command = akce, activebackground = barva)
             b.barva = 0
+            b.poradi = cislo
             b.grid(column = cislo, row = 13)
             self.pokusBarvy.append(b)
 
-#        for radek, barva in enumerate (self.barvy):
-#            for sloupec in range (5):
-#                def akce (r = radek, s = sloupec):
-#                    self.click(r, s)
-#                b = tk.Button(self, width = self.sirka, height = self.vyska, 
-#                              bg = barva, fg = barva, bitmap = 'gray12',
-#                              command = akce)
-#                b.grid(column = sloupec, row = radek + 13)
+    def NewGame(self):
+        self.Generuj()
+        self.HadaneBarvy = []
+        self.pokusBarva = []
+        for radek in range (10):
+            RadekBarev = []
+            for sloupec in range (5):     
+                c = tk.Canvas(self, background = 'grey', width = self.sirka, 
+                              height = self.vyska)
+                c.sloupec = (sloupec)
+                c.radek = (radek)
+                c.grid(column = sloupec, row = radek + 3)
+                RadekBarev.append (c)
+            self.HadaneBarvy.append(RadekBarev)
+        OdpovedProgramu = []
+        for radek in range (10):
+            lbl = tk.Label(self, text = '- / -', font = 'Arial 13')
+            lbl.grid(column = 7, row = radek + 3)
+            OdpovedProgramu.append(lbl)
+            
+            
+    def Generuj(self):
+        self.hadanka = []
+        self.aktualniradek = 9
+        for i in range (5):
+            while 1:
+                nahodnaBarva = self.barvy [random.randint(0, len(self.barvy)-1)]
+                if not nahodnaBarva in self.hadanka:
+                    break
+        self.hadanka.append(nahodnaBarva)
+        return self.hadanka
+        
+
+    def Potvrd(self):
+        print (self.pokusBarva)
+        self.spravnaBarva = 0
+        self.spravnaPozice = 0
+        for i in range (5):
+            if self.pokusBarva == self.hadanka[i]:
+                self.spravnaPozice += 1
+            elif self.pokusBarva in self.hadanka:
+                self.spravnaBarva += 1
+        self.OdpovedProgramu[self.aktualniradek].config(text = '{}/{}'.format
+                            (self.spravnaBarva, self.spravnaPozice))
+        if self.aktualniradek == 0 or self.spravaPozice == 5:
+            pass
+        self.aktualniRadek -= 1
+        self.pokusBarva = []
         
        
     def click (self, c, b):
         self.pokusBarvy[c].barva += 1
         self.pokusBarvy[c].barva %= len(self.barvy)
         print(self.pokusBarvy[c].barva)
-    
-        
-        #barva = (self.barvy[self.prvni])
+        print(self.pokusBarvy[c].poradi)
+        barva = self.barvy[self.pokusBarvy[c].barva]
         self.pokusBarvy[c].configure(bg = barva, activebackground = barva)
+        self.pokusBarva[self.pokusBarvy[c].poradi].config(self.pokusBarvy[c].barva)
         return
-        
-        if c == 0:
-            self.prvni = self.prvni + 1
-            if self.prvni == 8:
-                self.prvni = 0
-            else:
-                pass
-            barva = (self.barvy[self.prvni])
-            self.pokusBarvy[c].configure(bg = barva, activebackground = barva)
-        if c == 1:
-            self.druhy = self.druhy + 1
-            if self.druhy == 8:
-                self.druhy = 0
-            else:
-                pass
-            barva = (self.barvy[self.druhy])
-            self.b.configure(bg = barva, activebackground = barva)
-        if c == 2:
-            self.treti = self.treti + 1
-            if self.treti == 8:
-                self.treti = 0
-            else:
-                pass
-            barva = (self.barvy[self.treti])
-            self.b.configure(bg = barva, activebackground = barva)
-        if c == 3:
-            self.ctvrty = self.ctvrty + 1
-            if self.ctvrty == 8:
-                self.ctvrty = 0
-            else:
-                pass
-            barva = (self.barvy[self.ctvrty])
-            self.b.configure(bg = barva, activebackground = barva)
-        if c == 4:
-            self.paty = self.paty + 1
-            if self.paty == 8:
-                self.paty = 0
-            else:
-                pass
-            barva = (self.barvy[self.paty])
-            self.b.configure(bg = barva, activebackground = barva)
-        print (c, barva)
 
 app = Application()
 app.mainloop()
