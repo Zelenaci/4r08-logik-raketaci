@@ -36,19 +36,8 @@ class Application (tk.Tk):
         
         ### Nová hra ###
         tk.Button (self, text = 'Nová hra', font = 'Arial 12', command = self.NewGame).grid(column = 7, row = 1)
-        
+        self.NewGame()
         ### Hádaná barva ###
-        self.HadaneBarvy = []
-        for radek in range (10):
-            RadekBarev = []
-            for sloupec in range (5):     
-                c = tk.Canvas(self, background = 'grey', width = self.sirka, 
-                              height = self.vyska)
-                c.sloupec = (sloupec)
-                c.radek = (radek)
-                c.grid(column = sloupec, row = radek + 3)
-                RadekBarev.append (c)
-            self.HadaneBarvy.append(RadekBarev)
         
         ### Odpověď programu ###
         self.OdpovedProgramu = []
@@ -57,8 +46,10 @@ class Application (tk.Tk):
             lbl.grid(column = 7, row = radek + 3)
             self.OdpovedProgramu.append(lbl)
         
+        tk.Canvas(self, background = 'black', width = 325, height = 5).grid(padx = 4, pady = 4, row=13, column = 0, columnspan = 5)
+        
         ### Potvrď ###
-        tk.Button (self, text = 'Potvrď', font = 'Arial 12', command = self.Potvrd).grid (row = 13, column = 7)
+        self.Odeslat = tk.Button (self, text = 'Potvrď', font = 'Arial 12', command = self.Potvrd).grid (row = 14, column = 7)
         
         ### Tlačítka ###
         self.pokusBarvy = []
@@ -72,28 +63,30 @@ class Application (tk.Tk):
                            command = akce, activebackground = barva)
             b.barva = 0
             b.poradi = cislo
-            b.grid(column = cislo, row = 13)
+            b.grid(column = cislo, row = 14)
             self.pokusBarvy.append(b)
 
     def NewGame(self):
-        self.Generuj()
+        self.hadanka=self.Generuj()
         self.HadaneBarvy = []
-        self.pokusBarva = []
+        self.pokusBarva = [None]*5
         for radek in range (10):
-            RadekBarev = []
+            self.RadekBarev = []
             for sloupec in range (5):     
                 c = tk.Canvas(self, background = 'grey', width = self.sirka, 
                               height = self.vyska)
                 c.sloupec = (sloupec)
                 c.radek = (radek)
                 c.grid(column = sloupec, row = radek + 3)
-                RadekBarev.append (c)
-            self.HadaneBarvy.append(RadekBarev)
+                self.RadekBarev.append (c)
+            self.HadaneBarvy.append(self.RadekBarev)
         OdpovedProgramu = []
         for radek in range (10):
             lbl = tk.Label(self, text = '- / -', font = 'Arial 13')
             lbl.grid(column = 7, row = radek + 3)
             OdpovedProgramu.append(lbl)
+        for i in range (5):
+            self.SkryteBarvy[i].config(background = 'black')
             
             
     def Generuj(self):
@@ -104,36 +97,46 @@ class Application (tk.Tk):
                 nahodnaBarva = self.barvy [random.randint(0, len(self.barvy)-1)]
                 if not nahodnaBarva in self.hadanka:
                     break
-        self.hadanka.append(nahodnaBarva)
+            self.hadanka.append(nahodnaBarva)
         return self.hadanka
         
 
     def Potvrd(self):
         print (self.pokusBarva)
+        print (self.hadanka)
         self.spravnaBarva = 0
         self.spravnaPozice = 0
         for i in range (5):
-            if self.pokusBarva == self.hadanka[i]:
+            if self.pokusBarva[i] == self.hadanka[i]:
+                
                 self.spravnaPozice += 1
-            elif self.pokusBarva in self.hadanka:
+            elif self.pokusBarva[i] in self.hadanka:
                 self.spravnaBarva += 1
         self.OdpovedProgramu[self.aktualniradek].config(text = '{}/{}'.format
                             (self.spravnaBarva, self.spravnaPozice))
-        if self.aktualniradek == 0 or self.spravaPozice == 5:
-            pass
-        self.aktualniRadek -= 1
-        self.pokusBarva = []
-        
-       
+        if self.aktualniradek < 0 or self.spravnaPozice == 5:
+            self.odkryjHadanku()
+            self.Odeslat.config(state=tk.DISABLED)
+        self.aktualniradek -= 1
+        print (self.spravnaPozice)
+        print (self.spravnaBarva)
+        self.prepis()
+
     def click (self, c, b):
         self.pokusBarvy[c].barva += 1
         self.pokusBarvy[c].barva %= len(self.barvy)
-        print(self.pokusBarvy[c].barva)
-        print(self.pokusBarvy[c].poradi)
         barva = self.barvy[self.pokusBarvy[c].barva]
+        self.pokusBarva[c]=barva
         self.pokusBarvy[c].configure(bg = barva, activebackground = barva)
-        self.pokusBarva[self.pokusBarvy[c].poradi].config(self.pokusBarvy[c].barva)
         return
+    
+    def prepis (self):
+        for i in range (5):
+            self.HadaneBarvy[self.aktualniradek + 1][i].config(background = self.pokusBarva[i])
+    
+    def odkryjHadanku(self):
+        for i in range (5):
+            self.SkryteBarvy[i].config(background = self.hadanka[i])
 
 app = Application()
 app.mainloop()
