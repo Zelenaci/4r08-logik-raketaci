@@ -3,7 +3,6 @@
 """
 Created on Tue Mar  5 09:57:31 2019
 
-@author: vla35123
 """
 
 import tkinter as tk
@@ -34,11 +33,10 @@ class Application (tk.Tk):
         tk.Label(self, text = 'Barva / Místo', font = 'Arial 13', height = 2, 
                  width = 15).grid(column = 7, row = 2)
         
-        ### Nová hra ###
-        tk.Button (self, text = 'Nová hra', font = 'Arial 12', command = self.NewGame).grid(column = 7, row = 1)
-        self.NewGame()
-        ### Hádaná barva ###
-        
+        ### Potvrď ###
+        self.Odeslat = tk.Button (self, text = 'Potvrď', font = 'Arial 12', command = self.Potvrd)
+        self.Odeslat.grid (row = 14, column = 7)
+
         ### Odpověď programu ###
         self.OdpovedProgramu = []
         for radek in range (10):
@@ -47,13 +45,9 @@ class Application (tk.Tk):
             self.OdpovedProgramu.append(lbl)
         
         tk.Canvas(self, background = 'black', width = 325, height = 5).grid(padx = 4, pady = 4, row=13, column = 0, columnspan = 5)
-        
-        ### Potvrď ###
-        self.Odeslat = tk.Button (self, text = 'Potvrď', font = 'Arial 12', command = self.Potvrd).grid (row = 14, column = 7)
-        
+             
         ### Tlačítka ###
-        self.pokusBarvy = []
-        
+        self.pokusBarvy = []    
         for cislo in range (5):
             barva = (self.barvy[0])
             def akce (c = cislo, b = barva):
@@ -66,7 +60,12 @@ class Application (tk.Tk):
             b.grid(column = cislo, row = 14)
             self.pokusBarvy.append(b)
 
+        ### Nová hra ###
+        tk.Button (self, text = 'Nová hra', font = 'Arial 12', command = self.NewGame).grid(column = 7, row = 1)
+        self.NewGame()
+
     def NewGame(self):
+        self.Odeslat.config(state = tk.NORMAL)
         self.hadanka=self.Generuj()
         self.HadaneBarvy = []
         self.pokusBarva = [None]*5
@@ -80,14 +79,19 @@ class Application (tk.Tk):
                 c.grid(column = sloupec, row = radek + 3)
                 self.RadekBarev.append (c)
             self.HadaneBarvy.append(self.RadekBarev)
-        OdpovedProgramu = []
+        self.OdpovedProgramu = []
         for radek in range (10):
             lbl = tk.Label(self, text = '- / -', font = 'Arial 13')
             lbl.grid(column = 7, row = radek + 3)
-            OdpovedProgramu.append(lbl)
+            self.OdpovedProgramu.append(lbl)
         for i in range (5):
             self.SkryteBarvy[i].config(background = 'black')
-            
+        for i in range (5):
+            self.pokusBarvy[i].barva = 0
+            self.pokusBarvy[i].barva %= len(self.barvy)
+            barva = self.barvy[self.pokusBarvy[i].barva]
+            self.pokusBarva[i]=barva
+            self.pokusBarvy[i].configure(bg = barva, activebackground = barva)
             
     def Generuj(self):
         self.hadanka = []
@@ -98,8 +102,7 @@ class Application (tk.Tk):
                 if not nahodnaBarva in self.hadanka:
                     break
             self.hadanka.append(nahodnaBarva)
-        return self.hadanka
-        
+        return self.hadanka    
 
     def Potvrd(self):
         print (self.pokusBarva)
@@ -114,9 +117,9 @@ class Application (tk.Tk):
                 self.spravnaBarva += 1
         self.OdpovedProgramu[self.aktualniradek].config(text = '{}/{}'.format
                             (self.spravnaBarva, self.spravnaPozice))
-        if self.aktualniradek < 0 or self.spravnaPozice == 5:
+        if self.aktualniradek < 1 or self.spravnaPozice == 5:
             self.odkryjHadanku()
-            self.Odeslat.config(state=tk.DISABLED)
+            self.Odeslat.config(state = tk.DISABLED)
         self.aktualniradek -= 1
         print (self.spravnaPozice)
         print (self.spravnaBarva)
